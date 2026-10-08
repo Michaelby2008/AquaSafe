@@ -7,6 +7,8 @@ import path from 'path';
 import authRoutes from './modules/auth/auth.routes';
 import reportesRoutes from './modules/reportes/reportes.routes';
 import { zonasRoutes, tiposFugaRoutes, cuadrillasRoutes } from './modules/catalogos/catalogos.routes';
+import dashboardRoutes from './modules/dashboard/dashboard.routes';
+import usuariosRoutes from './modules/usuarios/usuarios.routes';
 import { errorHandler } from './middlewares/errorHandler';
 
 export const app = express();
@@ -24,5 +26,7 @@ app.use('/api/zonas', zonasRoutes);
 app.use('/api/tipos-fuga', tiposFugaRoutes);
 app.use('/api/cuadrillas', cuadrillasRoutes);
 app.use('/api/reportes', reportesRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/usuarios', usuariosRoutes);
 
 app.use(errorHandler); 
