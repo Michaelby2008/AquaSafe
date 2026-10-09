@@ -1,0 +1,102 @@
+<a routerLink="/reportes" class="volver">← Volver a reportes</a>
+
+@if (cargando()) {
+  <div class="cargando" role="status">
+    <div class="spinner" aria-hidden="true"></div>
+    Cargando reporte...
+  </div>
+} @else if (errorCarga()) {
+  <div class="alert alert-error" role="alert">{{ errorCarga() }}</div>
+  <a class="btn btn-borde" routerLink="/reportes">Ir al listado</a>
+} @else if (reporte(); as r) {
+  <div class="fila espacio-entre">
+    <h1>Reporte n.º {{ r.id }}: {{ r.titulo }}</h1>
+    <div class="fila">
+      @if (puedeEditar()) {
+        <a class="btn btn-borde" [routerLink]="['/reportes', r.id, 'editar']">Editar</a>
+        <button type="button" class="btn btn-peligro" (click)="dialogoAbierto.set(true)">Eliminar</button>
+      }
+    </div>
+  </div>
+
+  @if (exito()) {
+    <div class="alert alert-exito" role="status">{{ exito() }}</div>
+  }
+  @if (errorAccion()) {
+    <div class="alert alert-error" role="alert">{{ errorAccion() }}</div>
+  }
+
+  <section class="card" aria-labelledby="titulo-datos">
+    <h2 id="titulo-datos">Datos del reporte</h2>
+    <dl class="datos">
+      <div><dt>Estado</dt><dd><app-etiqueta tipo="estado" [valor]="r.estado" /></dd></div>
+      <div><dt>Gravedad</dt><dd><app-etiqueta tipo="gravedad" [valor]="r.gravedad" /></dd></div>
+      <div><dt>Zona</dt><dd>{{ r.zona }}</dd></div>
+      <div><dt>Tipo de fuga</dt><dd>{{ r.tipo }}</dd></div>
+      <div><dt>Reportado por</dt><dd>{{ r.reportante }}</dd></div>
+      <div><dt>Fecha</dt><dd>{{ r.creado_en | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+      <div class="ancho"><dt>Dirección</dt><dd>{{ r.direccion }}</dd></div>
+      <div class="ancho"><dt>Descripción</dt><dd>{{ r.descripcion }}</dd></div>
+      @if (r.latitud !== null && r.longitud !== null) {
+        <div class="ancho">
+          <dt>Ubicación</dt>
+          <dd>
+            {{ r.latitud }}, {{ r.longitud }} ·
+            <a [href]="urlMapa(r)" target="_blank" rel="noopener">Ver en el mapa (se abre en otra pestaña)</a>
+          </dd>
+        </div>
+      }
+    </dl>
+  </section>
+
+  <section class="card" aria-labelledby="titulo-fotos">
+    <h2 id="titulo-fotos">Fotografías</h2>
+    @if (r.evidencias.length === 0) {
+      <p class="texto-suave">Este reporte no tiene fotografías.</p>
+    } @else {
+      <div class="fotos">
+        @for (f of r.evidencias; track f.id; let i = $index) {
+          <a [href]="urlFoto(f.ruta_archivo)" target="_blank" rel="noopener">
+            <img [src]="urlFoto(f.ruta_archivo)" [alt]="'Fotografía ' + (i + 1) + ' del reporte ' + r.id" />
+          </a>
+        }
+      </div>
+    }
+  </section>
+
+  @if (r.asignaciones.length) {
+    <section class="card" aria-labelledby="titulo-asignaciones">
+      <h2 id="titulo-asignaciones">Cuadrilla asignada</h2>
+      @for (a of r.asignaciones; track a.fecha_asignacion) {
+        <p>
+          <strong>{{ a.cuadrilla }}</strong> · asignada el {{ a.fecha_asignacion | date: 'dd/MM/yyyy HH:mm' }}
+          @if (a.fecha_cierre) { · cerrada el {{ a.fecha_cierre | date: 'dd/MM/yyyy HH:mm' }} }
+          @if (a.notas) { <br /><span class="texto-suave">Notas: {{ a.notas }}</span> }
+        </p>
+      }
+    </section>
+  }
+
+  <section class="card" aria-labelledby="titulo-historial">
+    <h2 id="titulo-historial">Historial de estados</h2>
+    <ol class="historial">
+      @for (h of r.historial; track h.fecha) {
+        <li>
+          <app-etiqueta tipo="estado" [valor]="h.estado_nuevo" />
+          <span class="texto-suave"> {{ h.fecha | date: 'dd/MM/yyyy HH:mm' }} · {{ h.usuario }}</span>
+          @if (h.comentario) { <div>{{ h.comentario }}</div> }
+        </li>
+      }
+    </ol>
+  </section>
+
+  <app-confirmar-dialogo
+    [abierto]="dialogoAbierto()"
+    titulo="¿Eliminar este reporte?"
+    mensaje="Se borrará el reporte con su historial y sus fotos. Esta acción no se puede deshacer."
+    textoConfirmar="Sí, eliminar"
+    [procesando]="eliminando()"
+    (confirmar)="eliminar()"
+    (cancelar)="dialogoAbierto.set(false)"
+  />
+}

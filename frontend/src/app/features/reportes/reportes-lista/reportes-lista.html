@@ -1,0 +1,123 @@
+<div class="fila espacio-entre">
+  <h1>{{ auth.esAdmin() ? 'Todos los reportes' : 'Mis reportes' }}</h1>
+  <a class="btn" routerLink="/reportes/nuevo">Nuevo reporte</a>
+</div>
+
+@if (exito()) {
+  <div class="alert alert-exito" role="status">{{ exito() }}</div>
+}
+
+<form class="card filtros" [formGroup]="filtros" role="search" aria-label="Filtrar reportes">
+  <div class="campo">
+    <label for="q">Buscar</label>
+    <input id="q" type="search" formControlName="q" placeholder="Título o dirección" />
+  </div>
+
+  <div class="campo">
+    <label for="estado">Estado</label>
+    <select id="estado" formControlName="estado">
+      <option value="">Todos</option>
+      @for (e of estados; track e) {
+        <option [value]="e">{{ textoEstado(e) }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="gravedad">Gravedad</label>
+    <select id="gravedad" formControlName="gravedad">
+      <option value="">Todas</option>
+      @for (g of gravedades; track g) {
+        <option [value]="g">{{ textoGravedad(g) }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="zona">Zona</label>
+    <select id="zona" formControlName="zona_id">
+      <option value="">Todas</option>
+      @for (z of zonas(); track z.id) {
+        <option [value]="z.id">{{ z.nombre }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="orden">Ordenar por</label>
+    <select id="orden" formControlName="orden">
+      <option value="recientes">Más recientes primero</option>
+      <option value="antiguos">Más antiguos primero</option>
+    </select>
+  </div>
+
+  <div class="campo boton-limpiar">
+    <button type="button" class="btn btn-borde" (click)="limpiar()">Limpiar filtros</button>
+  </div>
+</form>
+
+@if (cargando()) {
+  <div class="cargando" role="status">
+    <div class="spinner" aria-hidden="true"></div>
+    Cargando reportes...
+  </div>
+} @else if (error()) {
+  <div class="alert alert-error" role="alert">
+    {{ error() }}
+    <button type="button" class="btn btn-sm btn-borde" (click)="cargar()">Reintentar</button>
+  </div>
+} @else if (datos(); as d) {
+  @if (d.data.length === 0) {
+    <div class="card vacio">
+      <p><strong>No se encontraron reportes.</strong></p>
+      <p>Prueba con otros filtros o crea un nuevo reporte.</p>
+      <a class="btn" routerLink="/reportes/nuevo">Crear reporte</a>
+    </div>
+  } @else {
+    <div class="card tabla-wrap">
+      <table>
+        <caption class="sr-only">Lista de reportes de fugas</caption>
+        <thead>
+          <tr>
+            <th scope="col">N.º</th>
+            <th scope="col">Título</th>
+            <th scope="col">Zona</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Gravedad</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of d.data; track r.id) {
+            <tr>
+              <td>{{ r.id }}</td>
+              <td>{{ r.titulo }}</td>
+              <td>{{ r.zona }}</td>
+              <td>{{ r.tipo }}</td>
+              <td><app-etiqueta tipo="gravedad" [valor]="r.gravedad" /></td>
+              <td><app-etiqueta tipo="estado" [valor]="r.estado" /></td>
+              <td>{{ r.creado_en | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                <a class="btn btn-sm btn-borde" [routerLink]="['/reportes', r.id]">
+                  Ver<span class="sr-only"> reporte {{ r.id }}</span>
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="paginacion" aria-label="Paginación de reportes">
+      <button type="button" class="btn btn-sm btn-borde" (click)="irAPagina(page() - 1)" [disabled]="page() <= 1">
+        Anterior
+      </button>
+      <span>Página {{ page() }} de {{ totalPaginas() }} ({{ d.total }} reportes)</span>
+      <button type="button" class="btn btn-sm btn-borde" (click)="irAPagina(page() + 1)" [disabled]="page() >= totalPaginas()">
+        Siguiente
+      </button>
+    </nav>
+  }
+}

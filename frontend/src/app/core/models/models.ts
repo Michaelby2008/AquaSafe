@@ -5,7 +5,6 @@ export type Estado = 'pendiente' | 'en_revision' | 'asignado' | 'en_reparacion' 
 export interface UsuarioSesion { id: number; nombre: string; rol: Rol; }
 export interface LoginResponse { token: string; usuario: UsuarioSesion; }
 export interface Perfil { id: number; nombre: string; email: string; telefono: string | null; rol: Rol; }
-
 export interface Paginado<T> { data: T[]; total: number; page: number; limit: number; }
 
 export interface Zona { id: number; nombre: string; municipio: string; activa: boolean; }
@@ -16,7 +15,10 @@ export interface ReporteResumen {
   id: number; titulo: string; direccion: string; gravedad: Gravedad;
   estado: Estado; creado_en: string; zona: string; tipo: string;
 }
+
 export interface ReporteDetalle extends ReporteResumen {
+  zona_id: number;
+  tipo_fuga_id: number;
   descripcion: string; reportante: string; latitud: number | null; longitud: number | null;
   evidencias: { id: number; ruta_archivo: string }[];
   historial: { estado_anterior: string | null; estado_nuevo: string; comentario: string | null; fecha: string; usuario: string }[];

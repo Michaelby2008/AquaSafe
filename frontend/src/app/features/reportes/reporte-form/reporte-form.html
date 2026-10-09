@@ -1,0 +1,143 @@
+<a routerLink="/reportes" class="volver">← Volver a reportes</a>
+<h1>{{ editando ? 'Editar reporte' : 'Nuevo reporte' }}</h1>
+
+@if (cargando()) {
+  <div class="cargando" role="status">
+    <div class="spinner" aria-hidden="true"></div>
+    Cargando...
+  </div>
+} @else if (bloqueado()) {
+  <div class="alert alert-aviso" role="alert">{{ bloqueado() }}</div>
+} @else {
+  @if (error()) {
+    <div class="alert alert-error" role="alert">{{ error() }}</div>
+  }
+
+  <form class="card" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+    <div class="dos-columnas">
+      <div class="campo">
+        <label for="zona">Zona</label>
+        <select id="zona" formControlName="zona_id" [class.invalido]="mensaje('zona_id')"
+          [attr.aria-invalid]="mensaje('zona_id') ? true : null" aria-describedby="zona-error">
+          <option [ngValue]="null">Selecciona una zona</option>
+          @for (z of zonas(); track z.id) {
+            <option [ngValue]="z.id">{{ z.nombre }}</option>
+          }
+        </select>
+        @if (mensaje('zona_id')) {
+          <span id="zona-error" class="error-campo">{{ mensaje('zona_id') }}</span>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="tipo">Tipo de fuga</label>
+        <select id="tipo" formControlName="tipo_fuga_id" [class.invalido]="mensaje('tipo_fuga_id')"
+          [attr.aria-invalid]="mensaje('tipo_fuga_id') ? true : null" aria-describedby="tipo-error">
+          <option [ngValue]="null">Selecciona un tipo</option>
+          @for (t of tipos(); track t.id) {
+            <option [ngValue]="t.id">{{ t.nombre }}</option>
+          }
+        </select>
+        @if (mensaje('tipo_fuga_id')) {
+          <span id="tipo-error" class="error-campo">{{ mensaje('tipo_fuga_id') }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="titulo">Título</label>
+      <input id="titulo" type="text" formControlName="titulo" placeholder="Ej: Fuga en la calle principal"
+        [class.invalido]="mensaje('titulo')" [attr.aria-invalid]="mensaje('titulo') ? true : null"
+        aria-describedby="titulo-error" />
+      @if (mensaje('titulo')) {
+        <span id="titulo-error" class="error-campo">{{ mensaje('titulo') }}</span>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="descripcion">Descripción</label>
+      <textarea id="descripcion" formControlName="descripcion" placeholder="Cuenta qué está pasando y desde cuándo"
+        [class.invalido]="mensaje('descripcion')" [attr.aria-invalid]="mensaje('descripcion') ? true : null"
+        aria-describedby="descripcion-error"></textarea>
+      @if (mensaje('descripcion')) {
+        <span id="descripcion-error" class="error-campo">{{ mensaje('descripcion') }}</span>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="direccion">Dirección o punto de referencia</label>
+      <input id="direccion" type="text" formControlName="direccion"
+        [class.invalido]="mensaje('direccion')" [attr.aria-invalid]="mensaje('direccion') ? true : null"
+        aria-describedby="direccion-error" />
+      @if (mensaje('direccion')) {
+        <span id="direccion-error" class="error-campo">{{ mensaje('direccion') }}</span>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="gravedad">Gravedad</label>
+      <select id="gravedad" formControlName="gravedad" aria-describedby="gravedad-ayuda">
+        @for (g of gravedades; track g) {
+          <option [value]="g">{{ textoGravedad(g) }}</option>
+        }
+      </select>
+      <span id="gravedad-ayuda" class="texto-suave">
+        Elige "Crítica" si el agua sale en gran cantidad o afecta a muchas personas.
+      </span>
+    </div>
+
+    <fieldset class="ubicacion">
+      <legend>Ubicación en el mapa (opcional)</legend>
+      <div class="dos-columnas">
+        <div class="campo">
+          <label for="latitud">Latitud</label>
+          <input id="latitud" type="number" step="any" formControlName="latitud"
+            [class.invalido]="mensaje('latitud')" aria-describedby="latitud-error" />
+          @if (mensaje('latitud')) {
+            <span id="latitud-error" class="error-campo">{{ mensaje('latitud') }}</span>
+          }
+        </div>
+        <div class="campo">
+          <label for="longitud">Longitud</label>
+          <input id="longitud" type="number" step="any" formControlName="longitud"
+            [class.invalido]="mensaje('longitud')" aria-describedby="longitud-error" />
+          @if (mensaje('longitud')) {
+            <span id="longitud-error" class="error-campo">{{ mensaje('longitud') }}</span>
+          }
+        </div>
+      </div>
+      <button type="button" class="btn btn-secundario btn-sm" (click)="usarUbicacion()">Usar mi ubicación actual</button>
+      @if (errorUbicacion()) {
+        <p class="error-campo" role="alert">{{ errorUbicacion() }}</p>
+      }
+    </fieldset>
+
+    @if (!editando) {
+      <div class="campo">
+        <label for="fotos">Fotografías (opcional, máximo 3)</label>
+        <input id="fotos" type="file" accept="image/jpeg,image/png,image/webp" multiple
+          (change)="alElegirFotos($event)" aria-describedby="fotos-ayuda fotos-error" />
+        <span id="fotos-ayuda" class="texto-suave">Formatos JPG, PNG o WEBP. Cada foto, máximo 5 MB.</span>
+        @if (errorFotos()) {
+          <span id="fotos-error" class="error-campo">{{ errorFotos() }}</span>
+        }
+        @if (archivos().length) {
+          <ul class="lista-fotos">
+            @for (f of archivos(); track f.name) {
+              <li>{{ f.name }}</li>
+            }
+          </ul>
+        }
+      </div>
+    } @else {
+      <p class="texto-suave">Las fotos no se pueden cambiar al editar un reporte.</p>
+    }
+
+    <div class="acciones">
+      <button type="submit" class="btn" [disabled]="enviando()">
+        {{ enviando() ? 'Guardando...' : editando ? 'Guardar cambios' : 'Crear reporte' }}
+      </button>
+      <a class="btn btn-borde" routerLink="/reportes">Cancelar</a>
+    </div>
+  </form>
+}

@@ -1,0 +1,18 @@
+<dialog
+  #dialogo
+  class="dialogo"
+  aria-labelledby="dialogo-titulo"
+  aria-describedby="dialogo-mensaje"
+  (cancel)="alCancelar($event)"
+>
+  <h2 id="dialogo-titulo">{{ titulo() }}</h2>
+  <p id="dialogo-mensaje">{{ mensaje() }}</p>
+  <div class="acciones">
+    <button type="button" class="btn btn-borde" (click)="cancelar.emit()" [disabled]="procesando()">
+      Cancelar
+    </button>
+    <button type="button" class="btn btn-peligro" (click)="confirmar.emit()" [disabled]="procesando()">
+      {{ procesando() ? 'Procesando...' : textoConfirmar() }}
+    </button>
+  </div>
+</dialog>

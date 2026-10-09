@@ -28,8 +28,28 @@ export const routes: Routes = [
     ],
   },
   {
-    path: '**',
-    title: 'Página no encontrada | AquaSave',
-    loadComponent: () => import('./shared/no-encontrado/no-encontrado').then((m) => m.NoEncontrado),
+    path: 'reportes',
+    title: 'Reportes | AquaSave',
+    loadComponent: () => import('./features/reportes/reportes-lista/reportes-lista').then((m) => m.ReportesLista),
   },
+  {
+    path: 'reportes/nuevo',
+   title: 'Nuevo reporte | AquaSave',
+   loadComponent: () => import('./features/reportes/reporte-form/reporte-form').then((m) => m.ReporteForm),
+  },
+  {
+   path: 'reportes/:id/editar',
+   title: 'Editar reporte | AquaSave',
+   loadComponent: () => import('./features/reportes/reporte-form/reporte-form').then((m) => m.ReporteForm),
+  },
+  {
+    path: 'reportes/:id',
+    title: 'Detalle del reporte | AquaSave',
+    loadComponent: () => import('./features/reportes/reporte-detalle/reporte-detalle').then((m) => m.ReporteDetalle),
+  },
+    {
+      path: '**',
+      title: 'Página no encontrada | AquaSave',
+      loadComponent: () => import('./shared/no-encontrado/no-encontrado').then((m) => m.NoEncontrado),
+   },
 ];

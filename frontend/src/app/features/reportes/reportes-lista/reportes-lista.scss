@@ -1,0 +1,14 @@
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0 1rem;
+  margin-bottom: 1rem;
+  align-items: end;
+}
+.filtros .campo { margin-bottom: 0.75rem; }
+.boton-limpiar .btn { width: 100%; }
+.paginacion {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 1rem; margin-top: 1rem;
+}
+.alert .btn { margin-left: 0.75rem; }
