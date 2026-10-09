@@ -1,0 +1,45 @@
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+<div class="app">
+  <header class="topbar">
+    <button
+      class="btn-menu"
+      type="button"
+      (click)="alternarMenu()"
+      [attr.aria-expanded]="menuAbierto()"
+      aria-controls="menu-principal"
+      aria-label="Abrir o cerrar el menú"
+    >
+      ☰
+    </button>
+
+    <a routerLink="/dashboard" class="logo">
+      <span aria-hidden="true">💧</span> AquaSave
+    </a>
+
+    <div class="usuario">
+      <span class="nombre">{{ auth.usuario()?.nombre }}</span>
+      <span class="badge badge-neutral">{{ auth.esAdmin() ? 'Administrador' : 'Ciudadano' }}</span>
+      <button class="btn-salir" type="button" (click)="cerrarSesion()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <nav id="menu-principal" class="menu" [class.abierto]="menuAbierto()" aria-label="Menú principal">
+    <a routerLink="/dashboard" routerLinkActive="activo" (click)="cerrarMenu()">Inicio</a>
+    <a routerLink="/reportes" routerLinkActive="activo" (click)="cerrarMenu()">Reportes</a>
+    <a routerLink="/reportes/nuevo" routerLinkActive="activo" (click)="cerrarMenu()">Nuevo reporte</a>
+    <a routerLink="/perfil" routerLinkActive="activo" (click)="cerrarMenu()">Mi perfil</a>
+
+    @if (auth.esAdmin()) {
+      <span class="menu-titulo">Administración</span>
+      <a routerLink="/admin/zonas" routerLinkActive="activo" (click)="cerrarMenu()">Zonas</a>
+      <a routerLink="/admin/tipos-fuga" routerLinkActive="activo" (click)="cerrarMenu()">Tipos de fuga</a>
+      <a routerLink="/admin/cuadrillas" routerLinkActive="activo" (click)="cerrarMenu()">Cuadrillas</a>
+      <a routerLink="/admin/usuarios" routerLinkActive="activo" (click)="cerrarMenu()">Usuarios</a>
+    }
+  </nav>
+
+  <main id="contenido" tabindex="-1">
+    <router-outlet />
+  </main>
+</div>

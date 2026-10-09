@@ -125,3 +125,7 @@ th { background: #eaf1f6; font-size: 0.875rem; }
 }
 @keyframes giro { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+
+/* Pantallas de login y registro */
+.auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 1rem; }
+.auth-card { width: 100%; max-width: 440px; }

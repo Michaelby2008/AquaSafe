@@ -1,0 +1,9 @@
+.pagina-auth {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: linear-gradient(160deg, var(--color-info-bg), var(--color-bg));
+}
+.caja { width: 100%; max-width: 460px; }
+.btn { width: 100%; }
