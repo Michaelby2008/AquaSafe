@@ -1,2 +1,142 @@
-<h1>Inicio</h1>
-<p>Hola, {{ auth.usuario()?.nombre }}. Tu sesión está activa.</p>
+<div class="fila espacio-entre">
+  <div>
+    <h1>Inicio</h1>
+    <p class="saludo">
+      Hola, {{ auth.usuario()?.nombre }}.
+      {{ auth.esAdmin() ? 'Este es el resumen de todos los reportes.' : 'Este es el resumen de tus reportes.' }}
+    </p>
+  </div>
+  <a class="btn" routerLink="/reportes/nuevo">Nuevo reporte</a>
+</div>
+
+@if (cargando()) {
+  <div class="cargando" role="status">
+    <div class="spinner" aria-hidden="true"></div>
+    Cargando resumen...
+  </div>
+} @else if (error()) {
+  <div class="alert alert-error" role="alert">
+    {{ error() }}
+    <button type="button" class="btn btn-sm btn-borde" (click)="cargar()">Reintentar</button>
+  </div>
+} @else if (datos(); as d) {
+  @if (d.resumen.total === 0) {
+    <div class="card vacio">
+      <p><strong>Todavía no hay reportes.</strong></p>
+      <p>{{ auth.esAdmin() ? 'Cuando los ciudadanos reporten fugas aparecerán aquí.' : 'Reporta una fuga y podrás seguir su avance desde aquí.' }}</p>
+      <a class="btn" routerLink="/reportes/nuevo">Crear reporte</a>
+    </div>
+  } @else {
+    <section aria-label="Indicadores principales">
+      <ul class="indicadores">
+        <li class="card">
+          <span class="valor">{{ d.resumen.total }}</span>
+          <span class="nombre-ind">Reportes en total</span>
+        </li>
+        <li class="card">
+          <span class="valor">{{ d.resumen.pendientes }}</span>
+          <span class="nombre-ind">Pendientes o en revisión</span>
+        </li>
+        <li class="card" [class.alerta]="d.resumen.urgentes > 0">
+          <span class="valor">{{ d.resumen.urgentes }}</span>
+          <span class="nombre-ind">Urgentes (gravedad alta o crítica sin cerrar)</span>
+        </li>
+        <li class="card">
+          <span class="valor">{{ d.resumen.resueltos }}</span>
+          <span class="nombre-ind">Resueltos</span>
+        </li>
+        <li class="card">
+          <span class="valor">
+            {{ d.resumen.horasPromedioResolucion === null ? '—' : d.resumen.horasPromedioResolucion + ' h' }}
+          </span>
+          <span class="nombre-ind">Tiempo promedio de resolución</span>
+        </li>
+        @if (auth.esAdmin() && d.cuadrillasDisponibles !== null) {
+          <li class="card">
+            <span class="valor">{{ d.cuadrillasDisponibles }}</span>
+            <span class="nombre-ind">Cuadrillas disponibles</span>
+          </li>
+        }
+      </ul>
+    </section>
+
+    <div class="grid grafica-grid">
+      <section class="card" aria-labelledby="t-estado">
+        <h2 id="t-estado">Reportes por estado</h2>
+        <ul class="barras">
+          @for (b of porEstado(); track b.clave) {
+            <li>
+              <app-etiqueta tipo="estado" [valor]="b.clave" />
+              <span class="pista" aria-hidden="true"><span class="relleno" [style.width.%]="b.porcentaje"></span></span>
+              <span class="cifra">{{ b.total }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <section class="card" aria-labelledby="t-gravedad">
+        <h2 id="t-gravedad">Reportes por gravedad</h2>
+        <ul class="barras">
+          @for (b of porGravedad(); track b.clave) {
+            <li>
+              <app-etiqueta tipo="gravedad" [valor]="b.clave" />
+              <span class="pista" aria-hidden="true"><span class="relleno" [style.width.%]="b.porcentaje"></span></span>
+              <span class="cifra">{{ b.total }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <section class="card" aria-labelledby="t-zona">
+        <h2 id="t-zona">Zonas con más reportes</h2>
+        <ul class="barras">
+          @for (b of porZona(); track b.clave) {
+            <li>
+              <span class="zona">{{ b.clave }}</span>
+              <span class="pista" aria-hidden="true"><span class="relleno" [style.width.%]="b.porcentaje"></span></span>
+              <span class="cifra">{{ b.total }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="t-ultimos">
+      <div class="fila espacio-entre">
+        <h2 id="t-ultimos">Últimos reportes</h2>
+        <a routerLink="/reportes">Ver todos</a>
+      </div>
+      <div class="tabla-wrap">
+        <table>
+          <caption class="sr-only">Últimos cinco reportes</caption>
+          <thead>
+            <tr>
+              <th scope="col">N.º</th>
+              <th scope="col">Título</th>
+              <th scope="col">Gravedad</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Fecha</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of d.ultimos; track r.id) {
+              <tr>
+                <td>{{ r.id }}</td>
+                <td>{{ r.titulo }}</td>
+                <td><app-etiqueta tipo="gravedad" [valor]="r.gravedad" /></td>
+                <td><app-etiqueta tipo="estado" [valor]="r.estado" /></td>
+                <td>{{ r.creado_en | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  <a class="btn btn-sm btn-borde" [routerLink]="['/reportes', r.id]">
+                    Ver<span class="sr-only"> reporte {{ r.id }}</span>
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+}

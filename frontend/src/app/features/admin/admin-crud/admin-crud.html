@@ -1,0 +1,213 @@
+<div class="fila espacio-entre">
+  <h1>{{ config.titulo }}</h1>
+  @if (config.permite.crear && !formAbierto()) {
+    <button type="button" class="btn" (click)="abrirCrear()">{{ nuevo }} {{ config.singular }}</button>
+  }
+</div>
+
+@if (config.aviso) {
+  <p class="texto-suave aviso">{{ config.aviso }}</p>
+}
+
+@if (exito()) {
+  <div class="alert alert-exito" role="status">{{ exito() }}</div>
+}
+@if (errorAccion()) {
+  <div class="alert alert-error" role="alert">{{ errorAccion() }}</div>
+}
+
+@if (formAbierto()) {
+  <section class="card form-card" aria-labelledby="titulo-form">
+    <h2 id="titulo-form">
+      @if (editando(); as f) {
+        Editar {{ config.singular }}: {{ nombreDe(f) }}
+      } @else {
+        {{ nuevo }} {{ config.singular }}
+      }
+    </h2>
+
+    @if (errorForm()) {
+      <div class="alert alert-error" role="alert">{{ errorForm() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+      @for (campo of config.campos; track campo.clave) {
+        @switch (campo.tipo) {
+          @case ('checkbox') {
+            <div class="campo campo-check">
+              <label>
+                <input type="checkbox" [formControlName]="campo.clave" />
+                {{ campo.etiqueta }}
+              </label>
+            </div>
+          }
+          @case ('select') {
+            <div class="campo">
+              <label [for]="'campo-' + campo.clave">{{ campo.etiqueta }}</label>
+              <select
+                [id]="'campo-' + campo.clave"
+                [formControlName]="campo.clave"
+                [class.invalido]="mensajeControl(form.controls[campo.clave])"
+                [attr.aria-invalid]="!!mensajeControl(form.controls[campo.clave])"
+                [attr.aria-describedby]="'error-' + campo.clave"
+              >
+                @if (!campo.requerido) {
+                  <option value="">{{ campo.textoVacio ?? 'Ninguno' }}</option>
+                }
+                @for (o of opcionesDe(campo); track o.valor) {
+                  <option [value]="o.valor">{{ o.texto }}</option>
+                }
+              </select>
+              @if (mensajeControl(form.controls[campo.clave]); as m) {
+                <span class="error-campo" [id]="'error-' + campo.clave">{{ m }}</span>
+              }
+            </div>
+          }
+          @case ('area') {
+            <div class="campo">
+              <label [for]="'campo-' + campo.clave">{{ campo.etiqueta }}</label>
+              <textarea
+                [id]="'campo-' + campo.clave"
+                rows="3"
+                [attr.maxlength]="campo.max ?? null"
+                [formControlName]="campo.clave"
+                [class.invalido]="mensajeControl(form.controls[campo.clave])"
+                [attr.aria-invalid]="!!mensajeControl(form.controls[campo.clave])"
+                [attr.aria-describedby]="'error-' + campo.clave"
+              ></textarea>
+              @if (mensajeControl(form.controls[campo.clave]); as m) {
+                <span class="error-campo" [id]="'error-' + campo.clave">{{ m }}</span>
+              }
+            </div>
+          }
+          @default {
+            <div class="campo">
+              <label [for]="'campo-' + campo.clave">{{ campo.etiqueta }}</label>
+              <input
+                [id]="'campo-' + campo.clave"
+                type="text"
+                [attr.maxlength]="campo.max ?? null"
+                [formControlName]="campo.clave"
+                [class.invalido]="mensajeControl(form.controls[campo.clave])"
+                [attr.aria-invalid]="!!mensajeControl(form.controls[campo.clave])"
+                [attr.aria-describedby]="'error-' + campo.clave"
+              />
+              @if (mensajeControl(form.controls[campo.clave]); as m) {
+                <span class="error-campo" [id]="'error-' + campo.clave">{{ m }}</span>
+              }
+            </div>
+          }
+        }
+      }
+
+      <div class="fila">
+        <button type="submit" class="btn" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando...' : 'Guardar' }}
+        </button>
+        <button type="button" class="btn btn-borde" (click)="cerrarForm()" [disabled]="guardando()">Cancelar</button>
+      </div>
+    </form>
+  </section>
+}
+
+<div class="campo buscador" role="search">
+  <label for="buscar">Buscar</label>
+  <input id="buscar" type="search" [formControl]="busqueda" [placeholder]="config.busqueda" />
+</div>
+
+@if (cargando()) {
+  <div class="cargando" role="status">
+    <div class="spinner" aria-hidden="true"></div>
+    Cargando...
+  </div>
+} @else if (error()) {
+  <div class="alert alert-error" role="alert">
+    {{ error() }}
+    <button type="button" class="btn btn-sm btn-borde" (click)="cargar()">Reintentar</button>
+  </div>
+} @else if (datos(); as d) {
+  @if (d.data.length === 0) {
+    <div class="card vacio">
+      <p><strong>No se encontraron registros.</strong></p>
+      @if (busqueda.value) {
+        <p>Prueba con otra búsqueda.</p>
+      } @else if (config.permite.crear) {
+        <p>Crea {{ config.genero === 'f' ? 'la primera' : 'el primer' }} {{ config.singular }} para empezar.</p>
+        <button type="button" class="btn" (click)="abrirCrear()">{{ nuevo }} {{ config.singular }}</button>
+      }
+    </div>
+  } @else {
+    <div class="card tabla-wrap">
+      <table>
+        <caption class="sr-only">Lista de {{ config.titulo.toLowerCase() }}</caption>
+        <thead>
+          <tr>
+            @for (col of config.columnas; track col.clave) {
+              <th scope="col">{{ col.titulo }}</th>
+            }
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fila of d.data; track fila.id) {
+            <tr>
+              @for (col of config.columnas; track col.clave) {
+                <td>
+                  @switch (col.tipo) {
+                    @case ('bool') {
+                      <span class="badge" [class]="fila[col.clave] ? 'badge-ok' : 'badge-neutral'">{{ texto(fila, col) }}</span>
+                    }
+                    @case ('fecha') {
+                      {{ $any(fila[col.clave]) | date: 'dd/MM/yyyy' }}
+                    }
+                    @default {
+                      {{ texto(fila, col) }}
+                    }
+                  }
+                </td>
+              }
+              <td>
+                <div class="acciones">
+                @if (esPropio(fila)) {
+                  <span class="texto-suave">Eres tú</span>
+                } @else {
+                  @if (config.permite.editar) {
+                    <button type="button" class="btn btn-sm btn-borde" (click)="abrirEditar(fila)">
+                      Editar<span class="sr-only"> {{ config.singular }} {{ nombreDe(fila) }}</span>
+                    </button>
+                  }
+                  @if (config.permite.eliminar) {
+                    <button type="button" class="btn btn-sm btn-peligro" (click)="filaAEliminar.set(fila)">
+                      Eliminar<span class="sr-only"> {{ config.singular }} {{ nombreDe(fila) }}</span>
+                    </button>
+                  }
+                }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="paginacion" [attr.aria-label]="'Paginación de ' + config.titulo.toLowerCase()">
+      <button type="button" class="btn btn-sm btn-borde" (click)="irAPagina(page() - 1)" [disabled]="page() <= 1">
+        Anterior
+      </button>
+      <span>Página {{ page() }} de {{ totalPaginas() }} ({{ d.total }} registros)</span>
+      <button type="button" class="btn btn-sm btn-borde" (click)="irAPagina(page() + 1)" [disabled]="page() >= totalPaginas()">
+        Siguiente
+      </button>
+    </nav>
+  }
+}
+
+<app-confirmar-dialogo
+  [abierto]="filaAEliminar() !== null"
+  [titulo]="'¿Eliminar ' + (config.genero === 'f' ? 'esta ' : 'este ') + config.singular + '?'"
+  [mensaje]="filaAEliminar() ? 'Se eliminará «' + nombreDe(filaAEliminar()!) + '». Esta acción no se puede deshacer.' : ''"
+  textoConfirmar="Sí, eliminar"
+  [procesando]="eliminando()"
+  (confirmar)="confirmarEliminar()"
+  (cancelar)="filaAEliminar.set(null)"
+/>

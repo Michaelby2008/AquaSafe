@@ -49,6 +49,113 @@
     </dl>
   </section>
 
+  @if (mostrarPanel()) {
+    <section class="card panel-admin" aria-labelledby="titulo-panel" [attr.aria-busy]="guardando()">
+      <h2 id="titulo-panel">Panel del administrador</h2>
+
+      <div class="acciones-admin">
+        @if (puedeAsignar()) {
+          <form [formGroup]="formAsignar" (ngSubmit)="asignar()" novalidate aria-labelledby="titulo-asignar">
+            <h3 id="titulo-asignar">Asignar cuadrilla</h3>
+
+            @if (cuadrillasDisponibles().length === 0) {
+              <p class="texto-suave">
+                No hay cuadrillas disponibles en este momento. Una cuadrilla vuelve a estar disponible cuando
+                resuelve su reporte, o puedes liberarla desde
+                <a routerLink="/admin/cuadrillas">Administración › Cuadrillas</a>.
+              </p>
+            }
+
+            <div class="campo">
+              <label for="cuadrilla">Cuadrilla</label>
+              <select
+                id="cuadrilla"
+                formControlName="cuadrilla_id"
+                [class.invalido]="mensajeControl(formAsignar.controls.cuadrilla_id)"
+                [attr.aria-invalid]="!!mensajeControl(formAsignar.controls.cuadrilla_id)"
+                aria-describedby="error-cuadrilla"
+              >
+                <option [ngValue]="null">Selecciona una cuadrilla</option>
+                @for (c of cuadrillasDisponibles(); track c.id) {
+                  <option [ngValue]="c.id">{{ c.nombre }}{{ c.zona_id === r.zona_id ? ' (misma zona)' : '' }}</option>
+                }
+              </select>
+              @if (mensajeControl(formAsignar.controls.cuadrilla_id); as m) {
+                <span class="error-campo" id="error-cuadrilla">{{ m }}</span>
+              }
+            </div>
+
+            <div class="campo">
+              <label for="notas">Notas para la cuadrilla (opcional)</label>
+              <textarea
+                id="notas"
+                rows="3"
+                maxlength="255"
+                formControlName="notas"
+                placeholder="Por ejemplo: llevar herramienta para tubería de 2 pulgadas"
+              ></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-secundario" [disabled]="guardando() || cuadrillasDisponibles().length === 0">
+              {{ guardando() ? 'Guardando...' : 'Asignar cuadrilla' }}
+            </button>
+          </form>
+        }
+
+        @if (estadosSiguientes().length) {
+          <form [formGroup]="formEstado" (ngSubmit)="intentarCambioEstado()" novalidate aria-labelledby="titulo-estado">
+            <h3 id="titulo-estado">Cambiar estado</h3>
+            <p class="texto-suave">
+              Estado actual: <app-etiqueta tipo="estado" [valor]="r.estado" />
+              @if (puedeAsignar()) { · Para pasar a «Asignado» usa el formulario de asignación. }
+            </p>
+
+            <div class="campo">
+              <label for="nuevo-estado">Nuevo estado</label>
+              <select
+                id="nuevo-estado"
+                formControlName="estado"
+                [class.invalido]="mensajeControl(formEstado.controls.estado)"
+                [attr.aria-invalid]="!!mensajeControl(formEstado.controls.estado)"
+                aria-describedby="error-estado"
+              >
+                <option value="">Selecciona el nuevo estado</option>
+                @for (e of estadosSiguientes(); track e) {
+                  <option [value]="e">{{ textoEstado(e) }}</option>
+                }
+              </select>
+              @if (mensajeControl(formEstado.controls.estado); as m) {
+                <span class="error-campo" id="error-estado">{{ m }}</span>
+              }
+            </div>
+
+            <div class="campo">
+              <label for="comentario">
+                Comentario {{ formEstado.controls.estado.value === 'rechazado' ? '(obligatorio al rechazar)' : '(opcional)' }}
+              </label>
+              <textarea
+                id="comentario"
+                rows="3"
+                maxlength="255"
+                formControlName="comentario"
+                [class.invalido]="mensajeControl(formEstado.controls.comentario)"
+                [attr.aria-invalid]="!!mensajeControl(formEstado.controls.comentario)"
+                aria-describedby="error-comentario"
+              ></textarea>
+              @if (mensajeControl(formEstado.controls.comentario); as m) {
+                <span class="error-campo" id="error-comentario">{{ m }}</span>
+              }
+            </div>
+
+            <button type="submit" class="btn" [disabled]="guardando()">
+              {{ guardando() ? 'Guardando...' : 'Actualizar estado' }}
+            </button>
+          </form>
+        }
+      </div>
+    </section>
+  }
+
   <section class="card" aria-labelledby="titulo-fotos">
     <h2 id="titulo-fotos">Fotografías</h2>
     @if (r.evidencias.length === 0) {
@@ -98,5 +205,15 @@
     [procesando]="eliminando()"
     (confirmar)="eliminar()"
     (cancelar)="dialogoAbierto.set(false)"
+  />
+
+  <app-confirmar-dialogo
+    [abierto]="dialogoRechazo()"
+    titulo="¿Rechazar este reporte?"
+    mensaje="Un reporte rechazado ya no se puede reabrir ni asignar. El ciudadano verá el motivo en el historial."
+    textoConfirmar="Sí, rechazar"
+    [procesando]="guardando()"
+    (confirmar)="aplicarCambioEstado()"
+    (cancelar)="dialogoRechazo.set(false)"
   />
 }

@@ -1,0 +1,72 @@
+<h1>Mi perfil</h1>
+
+@if (cargando()) {
+  <div class="cargando" role="status">
+    <div class="spinner" aria-hidden="true"></div>
+    Cargando perfil...
+  </div>
+} @else if (errorCarga()) {
+  <div class="alert alert-error" role="alert">
+    {{ errorCarga() }}
+    <button type="button" class="btn btn-sm btn-borde" (click)="cargar()">Reintentar</button>
+  </div>
+} @else if (perfil(); as p) {
+  <div class="card ficha">
+    @if (exito()) {
+      <div class="alert alert-exito" role="status">{{ exito() }}</div>
+    }
+    @if (error()) {
+      <div class="alert alert-error" role="alert">{{ error() }}</div>
+    }
+
+    <dl class="solo-lectura">
+      <div>
+        <dt>Correo electrónico</dt>
+        <dd>{{ p.email }}</dd>
+      </div>
+      <div>
+        <dt>Rol</dt>
+        <dd>{{ p.rol === 'administrador' ? 'Administrador' : 'Ciudadano' }}</dd>
+      </div>
+    </dl>
+    <p class="texto-suave">El correo y el rol no se pueden cambiar desde aquí.</p>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" novalidate aria-label="Editar datos personales">
+      <div class="campo">
+        <label for="nombre">Nombre completo</label>
+        <input
+          id="nombre"
+          type="text"
+          formControlName="nombre"
+          autocomplete="name"
+          [class.invalido]="mensajeControl(form.controls.nombre)"
+          [attr.aria-invalid]="!!mensajeControl(form.controls.nombre)"
+          aria-describedby="error-nombre"
+        />
+        @if (mensajeControl(form.controls.nombre); as m) {
+          <span class="error-campo" id="error-nombre">{{ m }}</span>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="telefono">Teléfono (opcional)</label>
+        <input
+          id="telefono"
+          type="tel"
+          formControlName="telefono"
+          autocomplete="tel"
+          [class.invalido]="mensajeControl(form.controls.telefono)"
+          [attr.aria-invalid]="!!mensajeControl(form.controls.telefono)"
+          aria-describedby="error-telefono"
+        />
+        @if (mensajeControl(form.controls.telefono); as m) {
+          <span class="error-campo" id="error-telefono">{{ m }}</span>
+        }
+      </div>
+
+      <button type="submit" class="btn" [disabled]="guardando() || form.pristine">
+        {{ guardando() ? 'Guardando...' : 'Guardar cambios' }}
+      </button>
+    </form>
+  </div>
+}

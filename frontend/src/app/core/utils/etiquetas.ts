@@ -23,3 +23,17 @@ export const ETIQUETA_GRAVEDAD: Record<string, InfoEtiqueta> = {
 
 export const textoEstado = (e: string) => ETIQUETA_ESTADO[e]?.texto ?? e;
 export const textoGravedad = (g: string) => ETIQUETA_GRAVEDAD[g]?.texto ?? g;
+
+// Cambios de estado permitidos desde el panel (espejo de TRANSICIONES en backend/reportes.service.ts).
+// Para pasar a "asignado" no se usa el cambio de estado: se asigna una cuadrilla.
+export const TRANSICIONES: Record<Estado, Estado[]> = {
+  pendiente: ['en_revision', 'rechazado'],
+  en_revision: ['rechazado'],
+  asignado: ['en_reparacion'],
+  en_reparacion: ['resuelto'],
+  resuelto: [],
+  rechazado: [],
+};
+
+// Estados desde los que se puede asignar una cuadrilla
+export const ESTADOS_ASIGNABLES: Estado[] = ['pendiente', 'en_revision'];

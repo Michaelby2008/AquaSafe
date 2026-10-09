@@ -1,0 +1,6 @@
+.ficha { max-width: 560px; }
+.alert .btn { margin-left: 0.75rem; }
+.solo-lectura { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 0 0 0.5rem; }
+.solo-lectura dt { font-size: 0.875rem; color: var(--color-text-muted); font-weight: 600; }
+.solo-lectura dd { margin: 0.15rem 0 0; overflow-wrap: anywhere; }
+.ficha form { margin-top: 1.25rem; border-top: 1px solid var(--color-border); padding-top: 1.25rem; }
