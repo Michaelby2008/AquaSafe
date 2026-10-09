@@ -53,6 +53,3 @@ Evidencia: ![alt text](evidencias/pruebas-backend-automatizadas.png)
 | `errorHandler` estaba antes de las rutas y no capturaba sus errores | Se movió al final de `app.ts` |
 | Los tokens de Postman se mezclaban entre administrador y ciudadano | Cada script se puso en su propia petición de login |
 
-## 4. Pendiente (se completa con el frontend)
-
-Pruebas automatizadas de Angular, revisión responsiva, compatibilidad en dos navegadores y pruebas en producción.
